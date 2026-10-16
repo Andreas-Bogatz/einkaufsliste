@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Einkauf</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#f2f2f7}
+*{box-sizing:border-box} body{margin:0} header{position:sticky;top:0;background:#f2f2f7dd;backdrop-filter:blur(12px);padding:18px 16px 10px;border-bottom:1px solid #ddd;z-index:2}
+h1{font-size:30px;margin:0} main{padding:12px 12px 90px}.card{background:#fff;border-radius:12px;margin:10px 0;overflow:hidden}.row{min-height:50px;padding:13px 15px;border-bottom:1px solid #e5e5ea;display:flex;align-items:center;gap:10px}.row:last-child{border-bottom:0}.row button{all:unset;cursor:pointer;flex:1}.dragHandle{flex:0 0 36px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#999;font-size:22px;font-weight:700;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}.dragHandle:active{cursor:grabbing}.dragging{opacity:.55}.catline{display:flex;align-items:center;padding:10px 5px 0}.catline .cat{flex:1;padding:8px 10px 7px}.catline .dragHandle{margin-right:5px}.chev{color:#aaa}.cat{font-size:13px;font-weight:700;color:#666;text-transform:uppercase;padding:18px 15px 7px}.item.done{text-decoration:line-through;color:#888}.check{width:24px;height:24px;border:2px solid #aaa;border-radius:50%;flex:0 0 auto}.done .check{background:#777;border-color:#777}.item .dragHandle{margin-left:auto}.toolbar{position:fixed;bottom:0;left:0;right:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#f2f2f7e8;backdrop-filter:blur(12px);border-top:1px solid #ddd;display:flex;gap:8px}.toolbar button,.toolbar input,.primary{border:0;border-radius:10px;padding:12px 14px;font-size:16px;background:#fff}.toolbar input{margin:0;min-width:0;border:1px solid #d1d1d6}.primary{background:#111;color:#fff}.toolbar .primary{flex:1}.toolbar .side{flex:0 0 132px;text-align:center;white-space:nowrap} dialog{border:0;border-radius:14px;width:min(92vw,480px);padding:18px}dialog::backdrop{background:#0005}.fieldlabel{display:block;font-size:12px;font-weight:600;color:#666;margin:4px 2px 1px}input,select{width:100%;font-size:17px;padding:11px;border:1px solid #ccc;border-radius:9px;margin:5px 0 12px;background:#fff}.dlg-buttons{display:flex;justify-content:flex-end;gap:8px}.hidden{display:none}.back{font-size:16px;margin-bottom:6px;color:#555;cursor:pointer}.hint{color:#777;font-size:13px;margin:4px 2px 10px}.suggestions{margin-top:-8px;margin-bottom:10px}.suggestions button{display:block;width:100%;text-align:left;border:0;background:#f2f2f7;padding:9px;border-bottom:1px solid #ddd}.empty{padding:28px 15px;color:#777;text-align:center}.storeMenu{position:fixed;inset:0;background:#0005;display:flex;align-items:flex-end;z-index:10}.storeMenu.hidden{display:none}.storeSheet{background:#f2f2f7;width:100%;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-radius:14px 14px 0 0}.storeSheet button{width:100%;border:0;background:#fff;padding:14px;font-size:17px;border-bottom:1px solid #ddd}.storeSheet button:first-child{border-radius:12px 12px 0 0}.storeSheet button.danger{color:#b00020}.storeSheet button.cancel{margin-top:8px;border-radius:12px;border-bottom:0}
+.titleline{display:flex;align-items:center;justify-content:space-between}.settings{border:0;background:transparent;font-size:25px;line-height:1;padding:3px 4px;color:#555;cursor:pointer}.settings.hidden{display:none}.settingsMenu{position:fixed;inset:0;background:#0005;display:flex;align-items:flex-end;z-index:30}.settingsMenu.hidden{display:none}.settingsSheet{background:#f2f2f7;width:100%;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-radius:14px 14px 0 0}.settingsSheet button{width:100%;border:0;background:#fff;padding:14px;font-size:17px;border-bottom:1px solid #ddd}.settingsSheet button:first-child{border-radius:12px 12px 0 0}.settingsSheet button.cancel{margin-top:8px;border-radius:12px;border-bottom:0}.categoryMenu{position:absolute;inset:0;background:#0005;display:flex;align-items:flex-end;z-index:20;border-radius:14px;overflow:hidden}.categoryMenu.hidden{display:none}.categorySheet{background:#f2f2f7;width:100%;padding:10px 12px}.categorySheet button{width:100%;border:0;background:#fff;padding:14px;font-size:17px;border-bottom:1px solid #ddd}.categorySheet button:first-child{border-radius:12px 12px 0 0}.categorySheet button.danger{color:#b00020}.categorySheet button.cancel{margin-top:8px;border-radius:12px;border-bottom:0}</style></head>
+<body><header><div id="back" class="back hidden">‹ Läden</div><div class="titleline"><h1 id="title">Einkauf</h1><button id="settings" class="settings" aria-label="Einstellungen">⚙︎</button></div></header><main id="app"></main>
+<div class="toolbar" id="toolbar"></div><div id="settingsMenu" class="settingsMenu hidden"><div class="settingsSheet"><button id="exportData">Daten exportieren</button><button id="importData">Daten importieren</button><button id="cancelSettings" class="cancel">Abbrechen</button></div></div><input id="importFile" type="file" accept="application/json,.json" class="hidden"><div id="storeMenu" class="storeMenu hidden"><div class="storeSheet"><button id="renameStore">Umbenennen</button><button id="deleteStore" class="danger">Löschen</button><button id="cancelStoreMenu" class="cancel">Abbrechen</button></div></div>
+<dialog id="dlg"><form method="dialog" id="form"><h3 id="dlgTitle"></h3><div id="fields"></div><div class="dlg-buttons"><button value="cancel">Abbrechen</button><button class="primary" value="default" id="save">Speichern</button></div></form><div id="categoryMenu" class="categoryMenu hidden"><div class="categorySheet"><button id="renameCategory">Umbenennen</button><button id="deleteCategory" class="danger">Löschen</button><button id="cancelCategoryMenu" class="cancel">Abbrechen</button></div></div></dialog>
+<script>
+const KEY='einkauf-v01';
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{stores:[{id:'coop',name:'Coop',categories:[{id:'og',name:'Obst & Gemüse',items:[{name:'Tomaten',done:false},{name:'Äpfel',done:false}]},{id:'milch',name:'Milchprodukte',items:[{name:'Butter',done:false}]}]},{id:'migros',name:'Migros',categories:[{id:'hh',name:'Haushalt',items:[{name:'Küchenrolle',done:false}]}]}],history:[{name:'Tomaten',store:'coop',category:'og'},{name:'Äpfel',store:'coop',category:'og'},{name:'Butter',store:'coop',category:'milch'},{name:'Küchenrolle',store:'migros',category:'hh'}]};
+let current=null; const $=s=>document.querySelector(s); function persist(){localStorage.setItem(KEY,JSON.stringify(db))}
+function ensureItemIds(){let changed=false;db.stores.forEach(st=>st.categories.forEach(cat=>cat.items.forEach(it=>{if(!it.id){it.id='i-'+Math.random().toString(36).slice(2)+Date.now().toString(36);changed=true}})));if(changed)persist()}
+ensureItemIds();
+function store(){return db.stores.find(x=>x.id===current)}
+function render(){const app=$('#app'),tb=$('#toolbar'); app.innerHTML='';tb.innerHTML=''; if(!current){$('#back').classList.add('hidden');$('#settings').classList.remove('hidden');$('#title').textContent='Einkauf'; if(!db.stores.length)app.innerHTML='<div class="empty">Noch keine Läden.</div>'; db.stores.forEach(s=>{let c=s.categories.reduce((n,x)=>n+x.items.filter(i=>!i.done).length,0);app.insertAdjacentHTML('beforeend',`<div class="card storeEntry" data-store-entry="${s.id}"><div class="row"><button data-store="${s.id}"><b>${esc(s.name)}</b>${c?` <span style="color:#888">(${c})</span>`:''}</button><span class="dragHandle" data-store-drag="${s.id}" aria-label="Geschäft verschieben">≡</span></div></div>`)});tb.innerHTML='<input id="addStore" class="primary" placeholder="+ Geschäft" readonly aria-label="Geschäft hinzufügen">';makeSortable('[data-store-drag]','.storeEntry',el=>el.dataset.storeEntry,order=>{applyOrder(db.stores,order);persist()});document.querySelectorAll('[data-store]').forEach(b=>{let timer=null,longPress=false;const start=()=>{longPress=false;timer=setTimeout(()=>{longPress=true;showStoreMenu(b.dataset.store)},550)};const cancel=()=>{if(timer){clearTimeout(timer);timer=null}};b.addEventListener('pointerdown',start);b.addEventListener('pointerup',()=>{cancel();if(!longPress){current=b.dataset.store;render()}});b.addEventListener('pointercancel',cancel);b.addEventListener('pointerleave',cancel);b.addEventListener('contextmenu',e=>{e.preventDefault();showStoreMenu(b.dataset.store)})});$('#addStore').onclick=addStore;return}
+let s=store();$('#back').classList.remove('hidden');$('#settings').classList.add('hidden');$('#title').textContent=s.name;let visible=s.categories.filter(c=>c.items.length);if(!visible.length)app.innerHTML='<div class="empty">Noch keine Artikel auf der Einkaufsliste.</div>';visible.forEach(c=>{app.insertAdjacentHTML('beforeend',`<div class="categoryEntry" data-category-entry="${c.id}"><div class="catline"><div class="cat">${esc(c.name)}</div><span class="dragHandle" data-category-drag="${c.id}" aria-label="Produktgruppe verschieben">≡</span></div><div class="card" id="c-${c.id}"></div></div>`);let box=$('#c-'+CSS.escape(c.id));c.items.forEach((it,k)=>{let r=document.createElement('div');r.className='row item '+(it.done?'done':'');r.dataset.itemEntry=it.id;r.innerHTML=`<span class="check"></span><button>${esc(it.name)}</button><span class="dragHandle" data-item-drag="${it.id}" aria-label="Artikel verschieben">≡</span>`;r.querySelector('button').onclick=()=>{it.done=!it.done;persist();render()};box.appendChild(r)});makeSortable(`#${CSS.escape('c-'+c.id)} [data-item-drag]`,`#${CSS.escape('c-'+c.id)} [data-item-entry]`,el=>el.dataset.itemEntry,order=>{applyOrder(c.items,order);persist()})});makeSortable('[data-category-drag]','.categoryEntry',el=>el.dataset.categoryEntry,order=>{applyOrder(s.categories,order);persist()});tb.innerHTML='<input id="addCat" class="side" placeholder="+ Gruppe" readonly aria-label="Produktgruppe hinzufügen"><input id="addItem" class="primary" placeholder="+ Artikel" readonly aria-label="Produkt hinzufügen"><button id="clear" class="side">Erledigte löschen</button>';$('#addCat').onclick=addCat;$('#addItem').onclick=addItem;$('#clear').onclick=()=>{s.categories.forEach(c=>c.items=c.items.filter(i=>!i.done));persist();render()}}
+
+
+function makeSortable(handleSelector,entrySelector,getEntryId,saveOrder){
+  document.querySelectorAll(handleSelector).forEach(handle=>{
+    handle.addEventListener('pointerdown',e=>{
+      if(e.button!==undefined&&e.button!==0)return;
+
+      const moving=handle.closest(entrySelector);
+      if(!moving)return;
+
+      const pointerId=e.pointerId;
+      let finished=false;
+      moving.classList.add('dragging');
+      e.preventDefault();
+      e.stopPropagation();
+
+      const move=e=>{
+        if(finished||e.pointerId!==pointerId)return;
+        e.preventDefault();
+
+        const siblings=[...document.querySelectorAll(entrySelector)].filter(el=>el!==moving);
+        if(!siblings.length)return;
+
+        let before=null;
+        for(const el of siblings){
+          const r=el.getBoundingClientRect();
+          if(e.clientY < r.top+r.height/2){before=el;break}
+        }
+
+        if(before){
+          if(moving.nextElementSibling!==before) before.before(moving);
+        }else{
+          const last=siblings[siblings.length-1];
+          if(last.nextElementSibling!==moving) last.after(moving);
+        }
+      };
+
+      const finish=e=>{
+        if(finished||e.pointerId!==pointerId)return;
+        finished=true;
+        window.removeEventListener('pointermove',move);
+        window.removeEventListener('pointerup',finish);
+        window.removeEventListener('pointercancel',finish);
+
+        const order=[...document.querySelectorAll(entrySelector)].map(getEntryId).filter(Boolean);
+        moving.classList.remove('dragging');
+        saveOrder(order);
+        render();
+      };
+
+      // Absichtlich am Window statt am bewegten Handle:
+      // der DOM-Knoten kann während des Drags beliebig oft umgesetzt werden.
+      window.addEventListener('pointermove',move,{passive:false});
+      window.addEventListener('pointerup',finish);
+      window.addEventListener('pointercancel',finish);
+    });
+  });
+}
+
+function applyOrder(array,order){
+  const pos=new Map(order.map((id,i)=>[id,i]));
+  array.sort((a,b)=>(pos.get(a.id)??Number.MAX_SAFE_INTEGER)-(pos.get(b.id)??Number.MAX_SAFE_INTEGER));
+}
+
+
+function hideSettings(){ $('#settingsMenu').classList.add('hidden') }
+function showSettings(){ $('#settingsMenu').classList.remove('hidden') }
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  a.href=url;
+  a.download=`einkauf_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  hideSettings();
+}
+
+function validImport(data){
+  return data&&typeof data==='object'&&Array.isArray(data.stores)&&Array.isArray(data.history)&&
+    data.stores.every(st=>st&&typeof st.id==='string'&&typeof st.name==='string'&&Array.isArray(st.categories)&&
+      st.categories.every(cat=>cat&&typeof cat.id==='string'&&typeof cat.name==='string'&&Array.isArray(cat.items)&&
+        cat.items.every(it=>it&&typeof it.name==='string')));
+}
+
+async function importDataFile(file){
+  try{
+    const data=JSON.parse(await file.text());
+    if(!validImport(data)){alert('Die Datei ist keine gültige Einkauf-Datendatei.');return}
+    if(!confirm('Die vorhandenen Daten durch die importierten Daten ersetzen?'))return;
+    db=data;
+    ensureItemIds();
+    persist();
+    current=null;
+    hideSettings();
+    render();
+  }catch(_){
+    alert('Die Datei konnte nicht importiert werden.');
+  }finally{
+    $('#importFile').value='';
+  }
+}
+
+$('#settings').onclick=showSettings;
+$('#cancelSettings').onclick=hideSettings;
+$('#settingsMenu').addEventListener('click',e=>{if(e.target===$('#settingsMenu'))hideSettings()});
+$('#exportData').onclick=exportData;
+$('#importData').onclick=()=>$('#importFile').click();
+$('#importFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f)importDataFile(f)});
+
+
+let menuStoreId=null;
+function hideStoreMenu(){menuStoreId=null;$('#storeMenu').classList.add('hidden')}
+function showStoreMenu(id){menuStoreId=id;$('#storeMenu').classList.remove('hidden')}
+$('#cancelStoreMenu').onclick=hideStoreMenu;
+$('#storeMenu').addEventListener('click',e=>{if(e.target===$('#storeMenu'))hideStoreMenu()});
+$('#renameStore').onclick=()=>{let s=db.stores.find(x=>x.id===menuStoreId);if(!s)return;hideStoreMenu();open('Laden umbenennen',`<input id="name" value="${esc(s.name)}" autofocus>`,()=>{let n=$('#name').value.trim();if(n){s.name=n;persist();render()}})};
+$('#deleteStore').onclick=()=>{let s=db.stores.find(x=>x.id===menuStoreId);if(!s)return;let id=s.id,name=s.name;hideStoreMenu();if(confirm(`„${name}“ wirklich löschen?\n\nDie globale Produkt- und Produktgruppen-Historie bleibt erhalten.`)){db.stores=db.stores.filter(x=>x.id!==id);persist();render()}};
+
+$('#back').onclick=()=>{current=null;render()};function esc(x){return x.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function open(title,html,onSave){$('#dlgTitle').textContent=title;$('#fields').innerHTML=html;let d=$('#dlg');d.showModal();$('#form').onsubmit=e=>{if(e.submitter?.value==='default'){e.preventDefault();onSave();d.close()}}}
+function addStore(){open('Laden hinzufügen','<input id="name" placeholder="Ladenname" autofocus>',()=>{let n=$('#name').value.trim();if(n){db.stores.push({id:crypto.randomUUID(),name:n,categories:[]});persist();render()}})}
+function allCategoryNames(){
+  let names=[];
+  db.stores.forEach(s=>s.categories.forEach(c=>{if(!names.some(n=>n.toLowerCase()===c.name.toLowerCase()))names.push(c.name)}));
+  return names.sort((a,b)=>a.localeCompare(b,'de'));
+}
+function ensureCategory(s,name){
+  let c=s.categories.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(!c){c={id:crypto.randomUUID(),name,items:[]};s.categories.push(c)}
+  return c;
+}
+function addCat(){
+  let known=allCategoryNames();
+  let rows=known.length?`<div class="hint">Vorhandene Gruppen – lange drücken zum Umbenennen oder Löschen:</div><div class="card" id="categoryList">${known.map(n=>`<div class="row"><button type="button" data-category-name="${esc(n)}">${esc(n)}</button></div>`).join('')}</div>`:'<div class="hint">Noch keine Produktgruppen vorhanden.</div>';
+  open('Produktgruppen',`${rows}<label class="fieldlabel" for="name">Neue Produktgruppe</label><input id="name" placeholder="z. B. Milchprodukte">`,()=>{
+    let n=$('#name').value.trim();if(n){ensureCategory(store(),n);persist();render()}
+  });
+  document.querySelectorAll('[data-category-name]').forEach(b=>{
+    let timer=null,longPress=false;
+    const start=()=>{longPress=false;timer=setTimeout(()=>{longPress=true;showCategoryMenu(b.dataset.categoryName)},550)};
+    const cancel=()=>{if(timer){clearTimeout(timer);timer=null}};
+    b.addEventListener('pointerdown',start);
+    b.addEventListener('pointerup',()=>{cancel();if(!longPress){let c=ensureCategory(store(),b.dataset.categoryName);persist();$('#dlg').close();render()}});
+    b.addEventListener('pointercancel',cancel);b.addEventListener('pointerleave',cancel);
+    b.addEventListener('contextmenu',e=>{e.preventDefault();showCategoryMenu(b.dataset.categoryName)});
+  })
+}
+let menuCategoryName=null;
+function hideCategoryMenu(){menuCategoryName=null;$('#categoryMenu').classList.add('hidden')}
+function showCategoryMenu(name){menuCategoryName=name;$('#categoryMenu').classList.remove('hidden')}
+$('#cancelCategoryMenu').onclick=hideCategoryMenu;
+$('#categoryMenu').addEventListener('click',e=>{if(e.target===$('#categoryMenu'))hideCategoryMenu()});
+$('#renameCategory').onclick=()=>{
+  let old=menuCategoryName;if(!old)return;hideCategoryMenu();
+  let n=prompt('Produktgruppe umbenennen:',old)?.trim();if(!n||n.toLowerCase()===old.toLowerCase())return;
+  db.stores.forEach(st=>st.categories.forEach(c=>{if(c.name.toLowerCase()===old.toLowerCase())c.name=n}));
+  db.history.forEach(h=>{if(h.categoryName&&h.categoryName.toLowerCase()===old.toLowerCase())h.categoryName=n;if(h.storeCategories)Object.keys(h.storeCategories).forEach(k=>{if(h.storeCategories[k]?.toLowerCase()===old.toLowerCase())h.storeCategories[k]=n})});
+  persist();hideCategoryMenu();addCat();
+};
+$('#deleteCategory').onclick=()=>{
+  let old=menuCategoryName;if(!old)return;hideCategoryMenu();
+  if(!confirm(`Produktgruppe „${old}“ wirklich löschen?\n\nBekannte Produkte bleiben in der Historie erhalten.`))return;
+  db.stores.forEach(st=>{st.categories=st.categories.filter(c=>c.name.toLowerCase()!==old.toLowerCase())});
+  db.history.forEach(h=>{if(h.categoryName&&h.categoryName.toLowerCase()===old.toLowerCase())delete h.categoryName;if(h.storeCategories)Object.keys(h.storeCategories).forEach(k=>{if(h.storeCategories[k]?.toLowerCase()===old.toLowerCase())delete h.storeCategories[k]})});
+  persist();hideCategoryMenu();addCat();
+};
+function addItem(){
+  let s=store();
+  let globalCats=allCategoryNames();
+  let catNames=[...s.categories.map(c=>c.name),...globalCats.filter(n=>!s.categories.some(c=>c.name.toLowerCase()===n.toLowerCase()))];
+  let opts=catNames.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  open('Artikel hinzufügen',`<label class="fieldlabel" for="item">Produkt</label><input id="item" autocomplete="off" placeholder="Produkt eingeben" autofocus><div id="sugg" class="suggestions"></div><label class="fieldlabel" for="cat">Produktgruppe</label><select id="cat">${opts}</select>`,()=>{
+    let n=$('#item').value.trim(),catName=$('#cat').value;if(!n||!catName)return;
+    let c=ensureCategory(s,catName);c.items.push({name:n,done:false});
+    let h=db.history.find(x=>x.name.toLowerCase()===n.toLowerCase());
+    if(h){h.categoryName=catName;h.storeCategories=h.storeCategories||{};h.storeCategories[s.id]=catName}
+    else db.history.push({name:n,categoryName:catName,storeCategories:{[s.id]:catName}});
+    persist();render()
+  });
+  let inp=$('#item'),sg=$('#sugg');
+  function chooseHistory(h){
+    inp.value=h.name;
+    let catName=(h.storeCategories&&h.storeCategories[s.id])||h.categoryName;
+    // Migration from v0.1 history records.
+    if(!catName&&h.category){
+      for(let st of db.stores){let c=st.categories.find(x=>x.id===h.category);if(c){catName=c.name;break}}
+    }
+    if(catName){let sel=$('#cat');if(![...sel.options].some(o=>o.value.toLowerCase()===catName.toLowerCase()))sel.add(new Option(catName,catName));sel.value=[...sel.options].find(o=>o.value.toLowerCase()===catName.toLowerCase())?.value||catName}
+    sg.innerHTML=''
+  }
+  inp.oninput=()=>{
+    let q=inp.value.trim().toLowerCase();sg.innerHTML='';if(!q)return;
+    let seen=new Set();
+    db.history.filter(h=>h.name.toLowerCase().includes(q)).filter(h=>{let k=h.name.toLowerCase();if(seen.has(k))return false;seen.add(k);return true}).slice(0,6).forEach(h=>{
+      let b=document.createElement('button');b.type='button';b.textContent=h.name;b.onclick=()=>chooseHistory(h);sg.appendChild(b)
+    })
+  }
+}
+render();
+</script></body></html>
