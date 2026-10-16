@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Einkauf</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#f2f2f7">
+<meta name="application-name" content="Einkauf">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Einkauf">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box} body{margin:0} header{position:sticky;top:0;background:#f2f2f7dd;backdrop-filter:blur(12px);padding:18px 16px 10px;border-bottom:1px solid #ddd;z-index:2}
@@ -225,4 +233,21 @@ function addItem(){
   }
 }
 render();
+</script>
+<script>
+// Separate from the application and its localStorage data.
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', {
+      scope: './',
+      updateViaCache: 'none'
+    }).then(registration => {
+      const checkForUpdate = () => registration.update().catch(console.warn);
+      checkForUpdate();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkForUpdate();
+      });
+    }).catch(console.warn);
+  });
+}
 </script></body></html>
